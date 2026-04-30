@@ -1,0 +1,14 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "lldb",
+      "request": "custom",
+      "name": "QEMU gdb-remote",
+      "targetCreateCommands": [
+        "target create \"${workspaceFolder}/kernel.elf\""
+      ],
+      "processCreateCommands": ["gdb-remote localhost:1234"]
+    }
+  ]
+}

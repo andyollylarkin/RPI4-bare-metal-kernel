@@ -1,0 +1,9 @@
+*.o
+*.elf
+*.bin
+*.map
+*.dts
+*.dtsb
+*.dtsi
+*.so
+sdcard.img
