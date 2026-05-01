@@ -7,3 +7,4 @@
 *.dtsi
 *.so
 sdcard.img
+*.dump

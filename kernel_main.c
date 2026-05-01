@@ -1,54 +1,8 @@
 #include "strconv.h"
 #include "drivers/disk/sd.h"
 #include "types.h"
+#include "printk.h"
 // #include "dtb.h"
-
-#define UART_BASE 0xFE201000
-#define UART_DR ((volatile unsigned int *)(UART_BASE + 0x00))
-#define UART_FR ((volatile unsigned int *)(UART_BASE + 0x18))
-#define UART_IBRD ((volatile unsigned int *)(UART_BASE + 0x24))
-#define UART_FBRD ((volatile unsigned int *)(UART_BASE + 0x28))
-#define UART_LCR_H ((volatile unsigned int *)(UART_BASE + 0x2C))
-#define UART_CR ((volatile unsigned int *)(UART_BASE + 0x30))
-
-static void uart_init(void)
-{
-	*UART_CR = 0;
-	*UART_IBRD = 26;
-	*UART_FBRD = 0;
-	*UART_LCR_H = (1 << 3) | (1 << 4);
-	*UART_CR = (1 << 0) | (1 << 8) | (1 << 9);
-}
-
-static void uart_putc(char c)
-{
-	while (*UART_FR & (1 << 5))
-	{
-	}
-	*UART_DR = (unsigned int)c;
-}
-
-static void uart_puts(const char *s)
-{
-	while (*s)
-	{
-		if (*s == '\n')
-			uart_putc('\r');
-		uart_putc(*s++);
-	}
-}
-
-static void uart_putint(int v)
-{
-	char tmp[16];
-	if (v < 0)
-	{
-		uart_putc('-');
-		v = -v;
-	}
-	itoa(v, tmp, 10);
-	uart_puts(tmp);
-}
 
 #define MT_NORMAL 1
 #define MT_DEVICE 0
@@ -78,8 +32,7 @@ extern void enable_mmu(unsigned long long int *table_base);
 
 void kmain(void)
 {
-	uart_init();
-	uart_puts("kmain: start\n");
+	printk("Hello, kernel!\n");
 
 	// mmu_build_tables();
 
@@ -95,54 +48,21 @@ void kmain(void)
 	int init_rc = sd_init();
 	if (init_rc != SD_OK)
 	{
-		uart_puts("SD init: ERROR rc=");
-		uart_putint(init_rc);
-		uart_putc('\n');
+		printk("SD init: ERROR rc=%d\n", init_rc);
 		while (1)
 		{
 		}
 	}
-	uart_puts("SD init: OK\n");
-
-	// int res = sd_readblock(0, buffer, 1);
-	// if (res > 0)
-	// {
-	// 	uart_puts("SD read block 0: OK\n");
-	// 	uart_puts("Data: ");
-	// 	for (int i = 0; i < 16; i++)
-	// 	{
-	// 		char tmp[4];
-	// 		itoa(buffer[i], tmp, 16);
-	// 		uart_puts(tmp);
-	// 		uart_putc(' ');
-	// 	}
-	// 	uart_putc('\n');
-	// }
-	// else
-	// {
-	// 	uart_puts("SD read block 0: ERROR\n");
-	// 	uart_puts("rc=");
-	// 	uart_putint(res);
-	// 	uart_puts(" sd_err=");
-	// 	uart_putint(sd_get_last_error());
-	// 	uart_putc('\n');
-	// }
+	printk("SD init: OK\n");
 
 	int res = sd_writeblock(0, buffer, 1);
 	if (res > 0)
 	{
-		uart_puts("SD write block 100: OK, bytes=");
-		uart_putint(res);
-		uart_putc('\n');
+		printk("SD write block 0: OK, bytes=%d\n", res);
 	}
 	else
 	{
-		uart_puts("SD write block 100: ERROR\n");
-		uart_puts("rc=");
-		uart_putint(res);
-		uart_puts(" sd_err=");
-		uart_putint(sd_get_last_error());
-		uart_putc('\n');
+		printk("SD write block 0: ERROR rc=%d sd_err=%d\n", res, sd_get_last_error());
 	}
 
 	// Теперь MMU включен, но мы все еще используем физические адреса для UART!

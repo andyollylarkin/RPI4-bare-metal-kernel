@@ -37,6 +37,17 @@
 #define UART0_IMSC ((volatile unsigned int *)(MMIO_BASE + 0x00201038))
 #define UART0_ICR ((volatile unsigned int *)(MMIO_BASE + 0x00201044))
 
+int is_uart_init()
+{
+	if (*UART0_IBRD != 0 || *UART0_FBRD != 0 || *UART0_LCRH != 0 || *UART0_CR != 0)
+	{
+		// UART уже инициализирован, пропускаем повторную инициализацию
+		return 1;
+	}
+
+	return 0;
+}
+
 /**
  * Set baud rate and characteristics (115200 8N1) and map to GPIO
  */
