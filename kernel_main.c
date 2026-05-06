@@ -2,6 +2,7 @@
 #include "drivers/disk/sd.h"
 #include "types.h"
 #include "printk.h"
+#include "fs/fat16.h"
 // #include "dtb.h"
 
 #define MT_NORMAL 1
@@ -39,12 +40,6 @@ void kmain(void)
 	// // Включаем MMU
 	// enable_mmu(table_l1);
 
-	uint8_t buffer[512];
-	for (int i = 0; i < 512; i++)
-	{
-		buffer[i] = i & 0xFF;
-	}
-
 	int init_rc = sd_init();
 	if (init_rc != SD_OK)
 	{
@@ -55,14 +50,47 @@ void kmain(void)
 	}
 	printk("SD init: OK\n");
 
-	int res = sd_writeblock(0, buffer, 1);
-	if (res > 0)
+	FAT16_FS fs;
+	const uint32_t fallback_total_sectors = 131072; /* 64 MiB image with 512-byte sectors. */
+	int mrc = fat16_mount_or_format(&fs, fallback_total_sectors);
+	if (mrc != 0)
 	{
-		printk("SD write block 0: OK, bytes=%d\n", res);
+		printk("FAT16 mount/format: ERROR rc=%d\n", mrc);
+		while (1)
+		{
+		}
+	}
+	printk("FAT16 mount/format: OK\n");
+
+	static const uint8_t msg[] = "hello from kernel\n";
+	int wrc = fat16_write_file(&fs, "HELLO.TXT", msg, (uint32_t)(sizeof(msg) - 1u));
+	if (wrc != 0)
+	{
+		printk("FAT16 write file: ERROR rc=%d\n", wrc);
+		while (1)
+		{
+		}
+	}
+	printk("FAT16 write file: OK\n");
+
+	FAT16_DirectoryEntry entry;
+	if (fat16_find_root_entry(&fs, "HELLO.TXT", &entry) != 0)
+	{
+		printk("FAT16 find file: ERROR\n");
 	}
 	else
 	{
-		printk("SD write block 0: ERROR rc=%d sd_err=%d\n", res, sd_get_last_error());
+		uint8_t verify[64];
+		uint32_t rd = 0;
+		if (fat16_read_file(&fs, &entry, verify, sizeof(verify) - 1u, &rd) == 0)
+		{
+			verify[rd] = 0;
+			printk("FAT16 readback (%u bytes): %s", (unsigned int)rd, (const char *)verify);
+		}
+		else
+		{
+			printk("FAT16 readback: ERROR\n");
+		}
 	}
 
 	// Теперь MMU включен, но мы все еще используем физические адреса для UART!

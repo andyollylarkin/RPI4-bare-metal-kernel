@@ -1,11 +1,11 @@
 run-out: kernel.elf
-	qemu-system-aarch64 -M raspi4b -nographic -kernel kernel.elf -serial stdio -monitor none -drive file=sdcard.img,if=sd,format=raw
+	qemu-system-aarch64 -M raspi4b -nographic -kernel kernel.elf -serial stdio -monitor none -drive file=sdcard.img,if=sd,format=raw,cache=directsync
 
 run-monitor: kernel.elf
-	qemu-system-aarch64 -M raspi4b -nographic -kernel kernel.elf -serial none -monitor stdio -drive file=sdcard.img,if=sd,format=raw
+	qemu-system-aarch64 -M raspi4b -nographic -kernel kernel.elf -serial none -monitor stdio -drive file=sdcard.img,if=sd,format=raw,cache=directsync
 
 run-debug: kernel.elf
-	qemu-system-aarch64 -M raspi4b -nographic -kernel kernel.elf -serial none -monitor stdio -drive file=sdcard.img,if=sd,format=raw -s -S
+	qemu-system-aarch64 -M raspi4b -nographic -kernel kernel.elf -serial none -monitor stdio -drive file=sdcard.img,if=sd,format=raw,cache=directsync -s -S
 
 truncate-sd: 
 	truncate -s 0M sdcard.img && qemu-img create -f raw sdcard.img 2G

@@ -122,11 +122,12 @@
 #define ACMD41_CMD_CCS 0x40000000
 #define ACMD41_ARG_HC 0x51ff8000
 
-unsigned long sd_scr[2], sd_ocr, sd_rca, sd_err, sd_hv;
+unsigned long sd_scr[2], sd_ocr, sd_rca, sd_hv;
+int sd_err;
 
 int sd_get_last_error(void)
 {
-	return (int)sd_err;
+	return sd_err;
 }
 
 /**

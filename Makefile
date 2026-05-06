@@ -1,6 +1,6 @@
 TARGET = aarch64-none-elf
 
-ASM_SOURCES = $(wildcard *.s)
+ASM_SOURCES = $(shell find . -name '*.s')
 C_SOURCES = $(shell find . -name '*.c')
 OBJECTS = $(ASM_SOURCES:.s=.o) $(C_SOURCES:.c=.o)
 
@@ -16,7 +16,7 @@ CFLAGS = \
     -fno-rtti \
     -Wall \
     -Wextra \
-    -O2 \
+    -O0 \
     -g \
 	-I. \
 	-L. \
@@ -55,6 +55,6 @@ kernel.img: kernel.elf
 	llvm-objcopy-14 -O binary kernel.elf kernel.img
 
 
-.PHONY: all run clean disasm run-out run-monitor run-debug truncate-sd
+.PHONY: all run clean disasm run-out run-monitor run-debug
 
 include ./Makefile.run.mk
